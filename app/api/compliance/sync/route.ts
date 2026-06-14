@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { normalizeUserId } from '@/lib/user-id';
 
 const supabase = createClient(
   "https://uyvkqgmuxerjdqarjgbh.supabase.co",

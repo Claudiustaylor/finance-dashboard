@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { normalizeUserId } from '@/lib/user-id';
 
 export async function POST(request: NextRequest) {
   try {

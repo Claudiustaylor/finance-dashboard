@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { normalizeUserId } from '@/lib/user-id';
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'https://ollama.com/v1';
 const OLLAMA_API_KEY = process.env.OLLAMA_API_KEY || '';
 const OLLAMA_VISION_MODEL = process.env.OLLAMA_VISION_MODEL || 'gemini-3-flash-preview';
 
 function getUserId(req: NextRequest): string | null {
-  return req.headers.get('x-titan-user-id') || req.headers.get('x-user-id') || null;
+  return normalizeUserId(req.headers.get("x-titan-user-id") || req.headers.get("x-user-id"));
 }
 
 function dataUriFromBase64(base64: string, mime = 'image/jpeg') {

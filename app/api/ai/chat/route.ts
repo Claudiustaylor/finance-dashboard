@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { normalizeUserId } from '@/lib/user-id';
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'https://ollama.com/v1';
 const OLLAMA_API_KEY = process.env.OLLAMA_API_KEY || '';
 const OLLAMA_MODEL = process.env.OLLAMA_CHAT_MODEL || 'kimi-k2.7-code';
 
 function getUserId(req: NextRequest): string | null {
-  // Prefer Supabase auth JWT; fall back to localStorage-style header used by existing app
-  return req.headers.get('x-titan-user-id') || req.headers.get('x-user-id') || null;
+  return normalizeUserId(req.headers.get("x-titan-user-id") || req.headers.get("x-user-id"));
 }
 
 async function callOllamaChat(messages: any[], tools?: any[], stream = false) {

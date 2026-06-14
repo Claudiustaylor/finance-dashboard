@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { Configuration, PlaidApi, PlaidEnvironments } from "plaid";
 import crypto from "crypto";
 import { getPlaidEnv } from "@/lib/plaid-env";
+import { normalizeUserId } from '@/lib/user-id';
 
 function createPlaid(env: "production" | "development" | "sandbox") {
   return new PlaidApi(

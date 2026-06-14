@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { normalizeUserId } from '@/lib/user-id';
 
 function getUserId(req: NextRequest): string | null {
-  return req.headers.get("x-titan-user-id") || req.headers.get("x-user-id") || null;
+  return normalizeUserId(req.headers.get("x-titan-user-id") || req.headers.get("x-user-id"));
 }
 
 function detectAnomalies(transactions: any[]) {
