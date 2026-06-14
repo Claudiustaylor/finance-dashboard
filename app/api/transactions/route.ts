@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
     let q = supabaseAdmin()
       .from("transactions")
-      .select("id, name, merchant_name, amount, date, category, plaid_category, ai_category, is_recurring, pending")
+      .select("id, name, merchant_name, amount, date, category_id, plaid_category, ai_category, is_recurring, pending")
       .eq("user_id", userId)
       .order("date", { ascending: false })
       .limit(limit);
