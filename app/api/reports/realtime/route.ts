@@ -13,27 +13,31 @@ export async function GET(req: NextRequest) {
 
     const sb = supabaseAdmin();
     const { data: accounts } = await sb.from("accounts").select("id, current_balance, type").eq("user_id", userId).eq("is_active", true);
-    const { data: txs } = await sb
+    const cutoff = new Date(Date.now() - 90 * 86400000).toISOString().split("T")[0];
+    const { data: txs, error: txError } = await sb
       .from("transactions")
-      .select("amount, date, category_id, type, pending")
+      .select("amount, date, category_id, pending")
       .eq("user_id", userId)
-      .gte("date", new Date(Date.now() - 90 * 86400000).toISOString().split("T")[0])
+      .gte("date", cutoff)
       .order("date", { ascending: true });
 
     const transactions = txs || [];
+    if (txError) {
+      console.error("Realtime report transaction query error:", txError);
+    }
     const totalBalance = (accounts || []).reduce((sum, a) => sum + Number(a.current_balance || 0), 0);
 
     const income = transactions
-      .filter((t) => Number(t.amount) < 0 || t.type === "credit")
+      .filter((t) => Number(t.amount) < 0)
       .reduce((sum, t) => sum + Math.abs(Number(t.amount || 0)), 0);
     const expense = transactions
-      .filter((t) => Number(t.amount) > 0 || t.type === "debit")
+      .filter((t) => Number(t.amount) > 0)
       .reduce((sum, t) => sum + Math.abs(Number(t.amount || 0)), 0);
 
     // Burn rate = last 30 days net outflow averaged daily, multiplied to monthly
     const last30 = transactions.filter((t) => new Date(t.date) >= new Date(Date.now() - 30 * 86400000));
     const net30 = last30.reduce(
-      (sum, t) => sum + (Number(t.amount) > 0 || t.type === "debit" ? Math.abs(Number(t.amount)) : -Math.abs(Number(t.amount))),
+      (sum, t) => sum + (Number(t.amount) > 0 ? Math.abs(Number(t.amount)) : -Math.abs(Number(t.amount))),
       0
     );
     const avgDailyBurn = net30 / 30;
@@ -55,7 +59,7 @@ export async function GET(req: NextRequest) {
       const key = new Date(t.date).toLocaleString("en-US", { month: "short" });
       if (!monthly[key]) continue;
       const abs = Math.abs(Number(t.amount || 0));
-      if (Number(t.amount) < 0 || t.type === "credit") monthly[key].income += abs;
+      if (Number(t.amount) < 0) monthly[key].income += abs;
       else monthly[key].expense += abs;
     }
 
