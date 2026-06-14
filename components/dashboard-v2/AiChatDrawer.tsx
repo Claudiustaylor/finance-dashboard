@@ -13,9 +13,10 @@ interface Message {
 interface AiChatDrawerProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  userId?: string | null;
 }
 
-export function AiChatDrawer({ open: openProp, onOpenChange }: AiChatDrawerProps) {
+export function AiChatDrawer({ open: openProp, onOpenChange, userId: userIdProp }: AiChatDrawerProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = openProp ?? internalOpen;
   const setOpen = (v: boolean) => {
@@ -47,8 +48,8 @@ export function AiChatDrawer({ open: openProp, onOpenChange }: AiChatDrawerProps
     setLoading(true);
 
     try {
-      const userId = localStorage.getItem("titan_user_id") || crypto.randomUUID();
-      localStorage.setItem("titan_user_id", userId);
+      const userId = userIdProp || (typeof window !== "undefined" ? localStorage.getItem("titan_user_id") : null) || crypto.randomUUID();
+      if (userIdProp && typeof window !== "undefined") localStorage.setItem("titan_user_id", userIdProp);
 
       const res = await fetch("/api/ai/chat", {
         method: "POST",

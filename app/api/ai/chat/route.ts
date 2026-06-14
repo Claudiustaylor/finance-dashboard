@@ -279,6 +279,11 @@ export async function POST(req: NextRequest) {
     const completion = await response.json();
     const assistantMessage = completion.choices?.[0]?.message || {};
 
+    // Some Ollama models (e.g. kimi-k2.7-code) return reasoning in a separate field
+    if (!assistantMessage.content && assistantMessage.reasoning) {
+      assistantMessage.content = assistantMessage.reasoning;
+    }
+
     // Handle tool calls
     let toolResults: any[] = [];
     if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
@@ -307,11 +312,14 @@ export async function POST(req: NextRequest) {
       );
       const secondCompletion = await secondResponse.json();
       const finalMessage = secondCompletion.choices?.[0]?.message || {};
+      if (!finalMessage.content && finalMessage.reasoning) {
+        finalMessage.content = finalMessage.reasoning;
+      }
 
       await sb.from('ai_messages').insert({
         conversation_id: convId,
         role: 'assistant',
-        content: finalMessage.content || '',
+        content: finalMessage.content || finalMessage.reasoning || '',
         tool_calls: assistantMessage.tool_calls,
       });
 
@@ -325,7 +333,7 @@ export async function POST(req: NextRequest) {
     await sb.from('ai_messages').insert({
       conversation_id: convId,
       role: 'assistant',
-      content: assistantMessage.content || '',
+      content: assistantMessage.content || assistantMessage.reasoning || '',
     });
 
     return NextResponse.json({

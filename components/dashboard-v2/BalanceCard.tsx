@@ -27,8 +27,8 @@ interface BalanceCardProps {
 const MINI_BARS = [18, 28, 14, 36, 22, 40, 26, 44, 34, 52, 30, 48];
 
 export function BalanceCard({
-  balance = 50764.0,
-  changePercent = 12,
+  balance = 0,
+  changePercent = 0,
   currency = "USD",
 }: BalanceCardProps) {
   const [hidden, setHidden] = useState(false);

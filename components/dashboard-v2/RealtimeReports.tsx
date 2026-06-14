@@ -13,29 +13,12 @@ interface Report {
   cash_flow?: { name: string; income: number; expense: number }[];
 }
 
-export function RealtimeReports() {
-  const [report, setReport] = useState<Report | null>(null);
-  const [loading, setLoading] = useState(true);
+interface RealtimeReportsProps {
+  report?: Report | null;
+  loading?: boolean;
+}
 
-  useEffect(() => {
-    async function load() {
-      const userId = localStorage.getItem("titan_user_id") || crypto.randomUUID();
-      localStorage.setItem("titan_user_id", userId);
-      try {
-        const res = await fetch("/api/reports/realtime", {
-          headers: { "x-titan-user-id": userId },
-        });
-        const data = await res.json();
-        setReport(data);
-      } catch {
-        setReport(null);
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
-  }, []);
-
+export function RealtimeReports({ report, loading }: RealtimeReportsProps) {
   const cards = [
     {
       label: "Total Balance",

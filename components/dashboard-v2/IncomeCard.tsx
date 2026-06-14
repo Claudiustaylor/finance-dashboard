@@ -12,11 +12,11 @@ interface IncomeCardProps {
 }
 
 export function IncomeCard({
-  total = 5000,
-  change = 456,
-  changePercent = 9.1,
-  salary = 3000,
-  freelance = 2000,
+  total = 0,
+  change = 0,
+  changePercent = 0,
+  salary = 0,
+  freelance = 0,
 }: IncomeCardProps) {
   return (
     <div className="relative overflow-hidden rounded-3xl bg-white p-5 shadow-[0_2px_24px_-6px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04]">

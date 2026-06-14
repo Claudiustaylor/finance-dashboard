@@ -3,23 +3,28 @@
 import { useEffect, useState } from "react";
 import { ArrowDownRight, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTitanUserId } from "@/hooks/useTitanUserId";
 
 export function TodayReceived() {
   const [today, setToday] = useState(0);
   const [invoices, setInvoices] = useState(0);
+  const { userId, loading: userLoading } = useTitanUserId();
 
   useEffect(() => {
-    fetch("/api/reports/realtime")
+    if (userLoading) return;
+    fetch("/api/reports/realtime", {
+      headers: userId ? { "x-titan-user-id": userId } : {},
+    })
       .then((r) => r.json())
       .then((d) => {
         setToday(d.today_received ?? 1240);
-        setInvoices(d.unpaid_invoices ?? 3);
+        setInvoices(d.unpaid_invoices ?? 0);
       })
       .catch(() => {
         setToday(1240);
-        setInvoices(3);
+        setInvoices(0);
       });
-  }, []);
+  }, [userId, userLoading]);
 
   return (
     <div className="rounded-3xl bg-white p-5 shadow-[0_2px_24px_-6px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04]">

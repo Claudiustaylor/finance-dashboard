@@ -19,15 +19,29 @@ import {
   AiAssistantCard,
 } from "@/components/dashboard-v2";
 import { supabase } from "@/lib/supabase";
+import { useTitanUserId } from "@/hooks/useTitanUserId";
+
+interface Report {
+  total_balance?: number;
+  income_90d?: number;
+  expense_90d?: number;
+  monthly_burn?: number;
+  runway_months?: number | null;
+  cash_flow?: { name: string; income: number; expense: number }[];
+  account_count?: number;
+  transaction_count_90d?: number;
+}
 
 function DashboardContent() {
   const [chatOpen, setChatOpen] = useState(false);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [plaidItems, setPlaidItems] = useState<any[]>([]);
-  const [totalBalance, setTotalBalance] = useState(50764);
+  const [report, setReport] = useState<Report | null>(null);
+  const [reportLoading, setReportLoading] = useState(true);
+  const { userId, loading: userLoading } = useTitanUserId();
 
   useEffect(() => {
-    async function load() {
+    async function loadAccounts() {
       const { data: accts } = await supabase
         .from("accounts")
         .select("*")
@@ -40,10 +54,34 @@ function DashboardContent() {
         .order("created_at", { ascending: false });
       setAccounts(accts || []);
       setPlaidItems(items || []);
-      setTotalBalance((accts || []).reduce((sum, a) => sum + Number(a.current_balance || 0), 0));
     }
-    load();
+    loadAccounts();
   }, []);
+
+  useEffect(() => {
+    async function loadReport() {
+      if (userLoading || !userId) return;
+      try {
+        const res = await fetch("/api/reports/realtime", {
+          headers: { "x-titan-user-id": userId },
+        });
+        const data = await res.json();
+        setReport(data);
+      } catch (err) {
+        console.error("Failed to load realtime report", err);
+      } finally {
+        setReportLoading(false);
+      }
+    }
+    loadReport();
+  }, [userId, userLoading]);
+
+  const totalBalance = report?.total_balance ?? 0;
+  const income90d = report?.income_90d ?? 0;
+  const expense90d = report?.expense_90d ?? 0;
+  const monthlyBurn = report?.monthly_burn ?? 0;
+  const runway = report?.runway_months ?? null;
+  const cashFlow = report?.cash_flow ?? [];
 
   return (
     <div className="dashboard-light min-h-screen bg-[#f4f6f8] text-slate-900">
@@ -94,16 +132,16 @@ function DashboardContent() {
         </div>
 
         <div className="mb-4">
-          <RealtimeReports />
+          <RealtimeReports report={report} loading={reportLoading} />
         </div>
 
         <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-12">
           <div className="lg:col-span-5">
-            <BalanceCard balance={totalBalance || 50764} changePercent={12} />
+            <BalanceCard balance={totalBalance} changePercent={12} />
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:col-span-7">
-            <IncomeCard />
-            <ExpenseCard />
+            <IncomeCard total={income90d} />
+            <ExpenseCard expense={expense90d} />
           </div>
         </div>
 
@@ -112,10 +150,10 @@ function DashboardContent() {
             <GoalsCard />
           </div>
           <div className="lg:col-span-5">
-            <CashflowChart />
+            <CashflowChart data={cashFlow} />
           </div>
           <div className="lg:col-span-3">
-            <TransactionHistory />
+            <TransactionHistory userId={userId} />
           </div>
         </div>
 
@@ -129,7 +167,7 @@ function DashboardContent() {
 
         <AiAssistantCard onOpenChat={() => setChatOpen(true)} />
 
-        <AiChatDrawer open={chatOpen} onOpenChange={setChatOpen} />
+        <AiChatDrawer open={chatOpen} onOpenChange={setChatOpen} userId={userId} />
 
         <footer className="mt-10 border-t border-slate-200/70 pt-6">
           <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
