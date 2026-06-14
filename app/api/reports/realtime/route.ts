@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     const { data: accounts } = await sb.from("accounts").select("id, current_balance, type").eq("user_id", userId).eq("is_active", true);
     const { data: txs } = await sb
       .from("transactions")
-      .select("amount, date, category, type, pending")
+      .select("amount, date, category_id, type, pending")
       .eq("user_id", userId)
       .gte("date", new Date(Date.now() - 90 * 86400000).toISOString().split("T")[0])
       .order("date", { ascending: true });
