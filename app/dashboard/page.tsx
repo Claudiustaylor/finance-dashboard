@@ -8,6 +8,7 @@ import {
   BalanceCard,
   IncomeCard,
   ExpenseCard,
+  CreditCardExpenseCard,
   GoalsCard,
   CashflowChart,
   TransactionHistory,
@@ -115,7 +116,7 @@ function DashboardContent() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <AddAccountButton />
+            <AddAccountButton data-connect-bank="true" />
             <form action="/api/plaid/sync" method="POST">
               <button
                 type="submit"
@@ -183,8 +184,17 @@ function DashboardContent() {
           </div>
         </div>
 
-        <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <TodayReceived todayReceived={report?.today_received ?? 0} unpaidInvoices={report?.unpaid_invoices ?? 0} loading={reportLoading} />
+          <CreditCardExpenseCard
+            amount={report?.credit_card_expense_90d ?? 0}
+            accountCount={accounts.filter((a) => String(a.subtype).toLowerCase().includes("credit") || String(a.type).toLowerCase().includes("credit")).length}
+            loading={reportLoading}
+            onConnect={() => {
+              const btn = document.querySelector('[data-connect-bank]') as HTMLButtonElement;
+              btn?.click();
+            }}
+          />
           <div className="sm:col-span-1 lg:col-span-2">
             <FinancialReportCard />
           </div>

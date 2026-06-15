@@ -7,9 +7,12 @@ import { Plus, Loader2, CheckCircle } from "lucide-react";
 interface Props {
   userId?: string;
   onSuccess?: () => void;
+  label?: string;
+  className?: string;
+  "data-connect-bank"?: string;
 }
 
-export function AddAccountButton({ userId, onSuccess }: Props) {
+export function AddAccountButton({ userId, onSuccess, label = "Connect Another Bank", className = "", "data-connect-bank": dataConnectBank }: Props) {
   const [linkToken, setLinkToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
@@ -91,7 +94,8 @@ export function AddAccountButton({ userId, onSuccess }: Props) {
       <button
         onClick={getToken}
         disabled={!!linkToken}
-        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#0071c5] hover:text-[#00aeef] border border-[#0071c5]/20 rounded-lg hover:bg-[#0071c5]/5 transition-all"
+        data-connect-bank={dataConnectBank}
+        className={`flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#0071c5] hover:text-[#00aeef] border border-[#0071c5]/20 rounded-lg hover:bg-[#0071c5]/5 transition-all ${className}`}
       >
         {linkToken ? (
           <>
@@ -101,7 +105,7 @@ export function AddAccountButton({ userId, onSuccess }: Props) {
         ) : (
           <>
             <Plus className="w-3.5 h-3.5" />
-            Connect Another Bank
+            {label}
           </>
         )}
       </button>

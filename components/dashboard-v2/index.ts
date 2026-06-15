@@ -3,6 +3,7 @@
 export * from "./BalanceCard";
 export * from "./IncomeCard";
 export * from "./ExpenseCard";
+export * from "./CreditCardExpenseCard";
 export * from "./GoalsCard";
 export * from "./CashflowChart";
 export * from "./TransactionHistory";

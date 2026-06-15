@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
         secret: PLAID_SECRET,
         user: { client_user_id: userId },
         client_name: 'Titan Finance',
-        products: ['transactions', 'auth'],
+        products: ['transactions', 'auth', 'liabilities'],
         country_codes: ['US'],
         language: 'en',
         transactions: { days_requested: 730 },
