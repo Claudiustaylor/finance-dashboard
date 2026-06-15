@@ -5,6 +5,7 @@ import { ArrowLeft, RefreshCw, Bell, Settings, Shield, BellRing, CreditCard, Fil
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { AddAccountButton } from "@/components/dashboard/AddAccountButton";
+import { ConnectedAccountsSheet } from "@/components/dashboard/ConnectedAccountsSheet";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
@@ -280,8 +281,9 @@ function DashboardContent() {
 
           <div className="flex items-center gap-2 sm:gap-3">
             <AddAccountButton data-connect-bank="true" />
-            <SyncButton userId={userId} />
+            <SyncButton userId={userId || undefined} />
             <NotificationsBell />
+            <ConnectedAccountsSheet userId={userId || undefined} />
             <Link
               href="/settings/accounts"
               className="hidden rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 sm:inline-flex"
@@ -320,8 +322,6 @@ function DashboardContent() {
               total={income90d}
               change={report?.income_change ?? 0}
               changePercent={report?.income_change_percent ?? 0}
-              salary={report?.salary_income ?? 0}
-              freelance={report?.freelance_income ?? 0}
               loading={reportLoading}
             />
             <ExpenseCard expense={expense90d} change={report?.expense_change ?? 0} changePercent={report?.expense_change_percent ?? 0} loading={reportLoading} />
@@ -336,7 +336,7 @@ function DashboardContent() {
             <CashflowChart data={cashFlow} />
           </div>
           <div className="lg:col-span-3">
-            <TransactionHistory userId={userId} />
+            <TransactionHistory userId={userId || undefined} />
           </div>
         </div>
 
@@ -358,7 +358,7 @@ function DashboardContent() {
 
         <AiAssistantCard onOpenChat={() => setChatOpen(true)} />
 
-        <AiChatDrawer open={chatOpen} onOpenChange={setChatOpen} userId={userId} />
+        <AiChatDrawer open={chatOpen} onOpenChange={setChatOpen} userId={userId || undefined} />
 
         <footer className="mt-10 border-t border-slate-200/70 pt-6">
           <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">

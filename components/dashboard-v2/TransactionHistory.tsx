@@ -76,14 +76,16 @@ export function TransactionHistory({ userId }: TransactionHistoryProps) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
 
-  const load = useCallback(async (currentOffset: number, append: boolean) => {
+  const load = useCallback(async (currentOffset: number, append: boolean, all = false) => {
     if (!userId) return;
     if (currentOffset === 0) setLoading(true);
     else setLoadingMore(true);
     setError(null);
     try {
-      const res = await fetch(`/api/transactions?limit=${PAGE_SIZE}&offset=${currentOffset}`, {
+      const limit = all ? 500 : PAGE_SIZE;
+      const res = await fetch(`/api/transactions?limit=${limit}&offset=${currentOffset}`, {
         headers: { "x-titan-user-id": userId },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -100,7 +102,7 @@ export function TransactionHistory({ userId }: TransactionHistoryProps) {
         accountSubtype: t.accounts?.subtype || null,
       }));
       setTxns((prev) => (append ? [...prev, ...rows] : rows));
-      setHasMore(rows.length === PAGE_SIZE);
+      setHasMore(rows.length === limit);
     } catch (err) {
       console.error("Failed to load transactions", err);
       setError("Could not load transactions.");
@@ -121,6 +123,11 @@ export function TransactionHistory({ userId }: TransactionHistoryProps) {
     const nextOffset = offset + PAGE_SIZE;
     setOffset(nextOffset);
     load(nextOffset, true);
+  };
+
+  const handleShowAll = () => {
+    setShowAll(true);
+    load(0, false, true);
   };
 
   if (loading && txns.length === 0) {
@@ -198,14 +205,25 @@ export function TransactionHistory({ userId }: TransactionHistoryProps) {
 
       {txns.length > 0 && (
         <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 shrink-0">
-          <button
-            onClick={handleShowMore}
-            disabled={loadingMore || !hasMore}
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-[#0071c5] transition hover:text-[#00aeef] disabled:pointer-events-none disabled:text-slate-400"
-          >
-            {loadingMore && <Loader2 className="size-3 animate-spin" />}
-            {loadingMore ? "Loading..." : hasMore ? "Show more" : "No more transactions"}
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleShowMore}
+              disabled={loadingMore || !hasMore}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#0071c5] transition hover:text-[#00aeef] disabled:pointer-events-none disabled:text-slate-400"
+            >
+              {loadingMore && <Loader2 className="size-3 animate-spin" />}
+              {loadingMore ? "Loading..." : hasMore ? "Show more" : "No more transactions"}
+            </button>
+            {!showAll && hasMore && (
+              <button
+                onClick={handleShowAll}
+                disabled={loadingMore}
+                className="text-xs font-medium text-slate-500 transition hover:text-slate-800 disabled:opacity-50"
+              >
+                Show all
+              </button>
+            )}
+          </div>
           <span className="text-xs text-slate-400">
             Showing {txns.length}
           </span>

@@ -6,8 +6,6 @@ interface IncomeCardProps {
   total?: number;
   change?: number;
   changePercent?: number;
-  salary?: number;
-  freelance?: number;
   loading?: boolean;
 }
 
@@ -15,8 +13,6 @@ export function IncomeCard({
   total = 0,
   change = 0,
   changePercent = 0,
-  salary = 0,
-  freelance = 0,
   loading = false,
 }: IncomeCardProps) {
   return (
@@ -42,32 +38,12 @@ export function IncomeCard({
       <div className="pt-14">
         <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600">
           <ArrowUpRight className="size-3" />
-          {change >= 0 ? "+" : ""}${change.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+          {change >= 0 ? "+" : ""}
+          ${change.toLocaleString("en-US", { minimumFractionDigits: 2 })}
         </div>
         <p className="mt-2 text-sm text-slate-500">
           Income {changePercent >= 0 ? "increased" : "decreased"} by {Math.abs(changePercent)}% from last month.
         </p>
-
-        <div className="mt-5 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex h-2 w-2 rounded-full bg-[#0071c5]" />
-              <span className="text-sm text-slate-600">Salary</span>
-            </div>
-            <span className="text-sm font-semibold text-slate-900">
-              ${salary.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex h-2 w-2 rounded-full bg-[#00aeef]" />
-              <span className="text-sm text-slate-600">Freelance</span>
-            </div>
-            <span className="text-sm font-semibold text-slate-900">
-              ${freelance.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-            </span>
-          </div>
-        </div>
       </div>
     </div>
   );
