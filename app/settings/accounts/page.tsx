@@ -121,7 +121,7 @@ export default function SettingsAccountsPage() {
     try {
       const sb = supabaseAdmin();
       const [{ data: accts }, { data: itms }] = await Promise.all([
-        sb.from("accounts").select("*").order("created_at", { ascending: false }),
+        sb.from("accounts").select("*").eq("is_active", true).order("created_at", { ascending: false }),
         sb.from("plaid_items").select("*").neq("status", "disconnected").order("created_at", { ascending: false }),
       ]);
       setAccounts(accts || []);
