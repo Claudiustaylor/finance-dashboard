@@ -18,9 +18,11 @@ export async function GET(req: NextRequest) {
     const startDate = searchParams.get("start_date");
     const endDate = searchParams.get("end_date");
 
-    let q = supabaseAdmin()
+    const sb = supabaseAdmin();
+
+    let q = sb
       .from("transactions")
-      .select("id, name, merchant_name, amount, date, category_id, plaid_category, ai_category, is_recurring, pending")
+      .select("id, name, merchant_name, amount, date, category_id, plaid_category, ai_category, is_recurring, pending, account_id, accounts:account_id(name, type, subtype)")
       .eq("user_id", userId)
       .order("date", { ascending: false })
       .limit(limit);

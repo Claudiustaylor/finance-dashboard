@@ -12,19 +12,33 @@ export async function GET(req: NextRequest) {
     if (!userId) return NextResponse.json({ error: "Missing user id" }, { status: 401 });
 
     const sb = supabaseAdmin();
-    const { data: accounts } = await sb.from("accounts").select("id, current_balance, type").eq("user_id", userId).eq("is_active", true);
+    const { data: accounts } = await sb
+      .from("accounts")
+      .select("id, current_balance, type, subtype")
+      .eq("user_id", userId)
+      .eq("is_active", true);
     const cutoff = new Date(Date.now() - 90 * 86400000).toISOString().split("T")[0];
-    const { data: txs, error: txError } = await sb
+    const { data: txRows, error: txError } = await sb
       .from("transactions")
-      .select("amount, date, category_id, pending")
+      .select("id, amount, date, category_id, pending, account_id, name, merchant_name, accounts:account_id(type, subtype)")
       .eq("user_id", userId)
       .gte("date", cutoff)
       .order("date", { ascending: true });
 
-    const transactions = txs || [];
     if (txError) {
       console.error("Realtime report transaction query error:", txError);
     }
+
+    // Join account type/subtype onto each transaction from the accounts map
+    const accountMap: Record<string, { type?: string; subtype?: string }> = {};
+    (accounts || []).forEach((a: any) => {
+      accountMap[a.id] = { type: a.type, subtype: a.subtype };
+    });
+    const transactions = (txRows || []).map((t: any) => ({
+      ...t,
+      accounts: accountMap[t.account_id] || {},
+    }));
+
     const totalBalance = (accounts || []).reduce((sum, a) => sum + Number(a.current_balance || 0), 0);
 
     const income = transactions
@@ -33,6 +47,20 @@ export async function GET(req: NextRequest) {
     const expense = transactions
       .filter((t) => Number(t.amount) > 0)
       .reduce((sum, t) => sum + Math.abs(Number(t.amount || 0)), 0);
+
+    // Split by account type/subtype for cards
+    const creditCardExpense = transactions
+      .filter((t) => Number(t.amount) > 0 && (String(t.accounts?.subtype).toLowerCase().includes("credit") || String(t.accounts?.type).toLowerCase().includes("credit")))
+      .reduce((sum, t) => sum + Math.abs(Number(t.amount || 0)), 0);
+    const checkingExpense = transactions
+      .filter((t) => Number(t.amount) > 0 && (String(t.accounts?.subtype).toLowerCase().includes("checking") || String(t.accounts?.type).toLowerCase().includes("depository")))
+      .reduce((sum, t) => sum + Math.abs(Number(t.amount || 0)), 0);
+
+    // Heuristic income splits
+    const salaryIncome = transactions
+      .filter((t) => Number(t.amount) < 0 && /(payroll|direct deposit|salary|gusto|adp)/i.test(t.name || ""))
+      .reduce((sum, t) => sum + Math.abs(Number(t.amount || 0)), 0);
+    const freelanceIncome = income - salaryIncome;
 
     // Burn rate = last 30 days net outflow averaged daily, multiplied to monthly
     const last30 = transactions.filter((t) => new Date(t.date) >= new Date(Date.now() - 30 * 86400000));
@@ -48,9 +76,9 @@ export async function GET(req: NextRequest) {
 
     // Cash flow monthly grouping for last 6 months
     const monthly: Record<string, { income: number; expense: number }> = {};
-    const now = new Date();
+    const today = new Date();
     for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
       const key = d.toLocaleString("en-US", { month: "short" });
       monthly[key] = { income: 0, expense: 0 };
     }
@@ -63,6 +91,35 @@ export async function GET(req: NextRequest) {
       else monthly[key].expense += abs;
     }
 
+    // Month-over-month change
+    const now = new Date();
+    const thisMonthKey = now.toLocaleString("en-US", { month: "short" });
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthKey = lastMonth.toLocaleString("en-US", { month: "short" });
+    const thisMonthIncome = monthly[thisMonthKey]?.income || 0;
+    const lastMonthIncome = monthly[lastMonthKey]?.income || 0;
+    const incomeChange = thisMonthIncome - lastMonthIncome;
+    const incomeChangePercent = lastMonthIncome > 0 ? (incomeChange / lastMonthIncome) * 100 : 0;
+
+    const thisMonthExpense = monthly[thisMonthKey]?.expense || 0;
+    const lastMonthExpense = monthly[lastMonthKey]?.expense || 0;
+    const expenseChange = thisMonthExpense - lastMonthExpense;
+    const expenseChangePercent = lastMonthExpense > 0 ? (expenseChange / lastMonthExpense) * 100 : 0;
+
+    // Balance change (last 30 days vs previous 30)
+    const current30 = transactions.filter((t) => new Date(t.date) >= new Date(Date.now() - 30 * 86400000));
+    const previous30 = transactions.filter(
+      (t) => new Date(t.date) >= new Date(Date.now() - 60 * 86400000) && new Date(t.date) < new Date(Date.now() - 30 * 86400000)
+    );
+    const currentNet = current30.reduce((s, t) => s + (Number(t.amount) > 0 ? -Math.abs(Number(t.amount)) : Math.abs(Number(t.amount))), 0);
+    const previousNet = previous30.reduce((s, t) => s + (Number(t.amount) > 0 ? -Math.abs(Number(t.amount)) : Math.abs(Number(t.amount))), 0);
+    const balanceChangePercent = previousNet !== 0 ? ((currentNet - previousNet) / Math.abs(previousNet)) * 100 : 0;
+
+    const todayStart = new Date().toISOString().split("T")[0];
+    const todayReceived = transactions
+      .filter((t) => Number(t.amount) < 0 && t.date === todayStart)
+      .reduce((sum, t) => sum + Math.abs(Number(t.amount || 0)), 0);
+
     return NextResponse.json({
       total_balance: Number(totalBalance.toFixed(2)),
       income_90d: Number(income.toFixed(2)),
@@ -72,6 +129,17 @@ export async function GET(req: NextRequest) {
       cash_flow: Object.entries(monthly).map(([name, vals]) => ({ name, income: vals.income, expense: vals.expense })),
       account_count: accounts?.length || 0,
       transaction_count_90d: transactions.length,
+      today_received: Number(todayReceived.toFixed(2)),
+      unpaid_invoices: 0,
+      credit_card_expense_90d: Number(creditCardExpense.toFixed(2)),
+      checking_expense_90d: Number(checkingExpense.toFixed(2)),
+      salary_income: Number(salaryIncome.toFixed(2)),
+      freelance_income: Number(freelanceIncome.toFixed(2)),
+      income_change: Number(incomeChange.toFixed(2)),
+      income_change_percent: Number(incomeChangePercent.toFixed(1)),
+      expense_change: Number(expenseChange.toFixed(2)),
+      expense_change_percent: Number(expenseChangePercent.toFixed(1)),
+      balance_change_percent: Number(balanceChangePercent.toFixed(1)),
     });
   } catch (err: any) {
     console.error("Reporting error:", err);

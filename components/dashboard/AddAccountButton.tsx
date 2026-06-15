@@ -52,6 +52,9 @@ export function AddAccountButton({ userId, onSuccess }: Props) {
             setConnected(false);
             onSuccess?.();
           }, 2000);
+        } else if (data.already_connected) {
+          setError(data.message || "This bank is already connected.");
+          setLinkToken(null);
         } else {
           setError(data.error || "Exchange failed");
         }

@@ -1,30 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ArrowDownRight, Calendar } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useTitanUserId } from "@/hooks/useTitanUserId";
 
-export function TodayReceived() {
-  const [today, setToday] = useState(0);
-  const [invoices, setInvoices] = useState(0);
-  const { userId, loading: userLoading } = useTitanUserId();
+interface TodayReceivedProps {
+  todayReceived?: number;
+  unpaidInvoices?: number;
+  loading?: boolean;
+}
 
-  useEffect(() => {
-    if (userLoading) return;
-    fetch("/api/reports/realtime", {
-      headers: userId ? { "x-titan-user-id": userId } : {},
-    })
-      .then((r) => r.json())
-      .then((d) => {
-        setToday(d.today_received ?? 1240);
-        setInvoices(d.unpaid_invoices ?? 0);
-      })
-      .catch(() => {
-        setToday(1240);
-        setInvoices(0);
-      });
-  }, [userId, userLoading]);
+export function TodayReceived({ todayReceived = 0, unpaidInvoices = 0, loading = false }: TodayReceivedProps) {
+  const [today] = useState(todayReceived);
+  const [invoices] = useState(unpaidInvoices);
 
   return (
     <div className="rounded-3xl bg-white p-5 shadow-[0_2px_24px_-6px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04]">
@@ -35,10 +22,16 @@ export function TodayReceived() {
           </div>
           <span className="text-sm font-semibold text-slate-900">Today received</span>
         </div>
-        <span className="text-xs font-medium text-emerald-600">+8%</span>
+        {!loading && (
+          <span className="text-xs font-medium text-emerald-600">+{today.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+        )}
       </div>
 
-      <p className="text-2xl font-bold text-slate-900">${today.toLocaleString()}</p>
+      {loading ? (
+        <div className="mt-2 h-8 w-28 animate-pulse rounded-lg bg-slate-100" />
+      ) : (
+        <p className="text-2xl font-bold text-slate-900">${today.toLocaleString("en-US", { minimumFractionDigits: 2 })}</p>
+      )}
 
       <div className="mt-4 flex items-center gap-2 text-xs text-slate-500">
         <Calendar className="size-3.5" />

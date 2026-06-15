@@ -1,7 +1,6 @@
 "use client";
 
 import { ArrowUpRight } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface IncomeCardProps {
   total?: number;
@@ -9,6 +8,7 @@ interface IncomeCardProps {
   changePercent?: number;
   salary?: number;
   freelance?: number;
+  loading?: boolean;
 }
 
 export function IncomeCard({
@@ -17,6 +17,7 @@ export function IncomeCard({
   changePercent = 0,
   salary = 0,
   freelance = 0,
+  loading = false,
 }: IncomeCardProps) {
   return (
     <div className="relative overflow-hidden rounded-3xl bg-white p-5 shadow-[0_2px_24px_-6px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04]">
@@ -27,9 +28,13 @@ export function IncomeCard({
           </div>
           <div>
             <p className="text-xs text-slate-500">Income</p>
-            <p className="text-lg font-bold text-slate-900">
-              ${total.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-            </p>
+            {loading ? (
+              <div className="h-5 w-20 animate-pulse rounded bg-slate-200" />
+            ) : (
+              <p className="text-lg font-bold text-slate-900">
+                ${total.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -37,10 +42,10 @@ export function IncomeCard({
       <div className="pt-14">
         <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600">
           <ArrowUpRight className="size-3" />
-          +${change.toLocaleString()}
+          {change >= 0 ? "+" : ""}${change.toLocaleString("en-US", { minimumFractionDigits: 2 })}
         </div>
         <p className="mt-2 text-sm text-slate-500">
-          Income increased by {changePercent}% from last month.
+          Income {changePercent >= 0 ? "increased" : "decreased"} by {Math.abs(changePercent)}% from last month.
         </p>
 
         <div className="mt-5 space-y-3">
@@ -50,7 +55,7 @@ export function IncomeCard({
               <span className="text-sm text-slate-600">Salary</span>
             </div>
             <span className="text-sm font-semibold text-slate-900">
-              ${salary.toLocaleString()}
+              ${salary.toLocaleString("en-US", { minimumFractionDigits: 2 })}
             </span>
           </div>
           <div className="flex items-center justify-between">
@@ -59,7 +64,7 @@ export function IncomeCard({
               <span className="text-sm text-slate-600">Freelance</span>
             </div>
             <span className="text-sm font-semibold text-slate-900">
-              ${freelance.toLocaleString()}
+              ${freelance.toLocaleString("en-US", { minimumFractionDigits: 2 })}
             </span>
           </div>
         </div>

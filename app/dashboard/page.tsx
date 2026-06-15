@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, RefreshCw, Bell, Settings } from "lucide-react";
+import { ArrowLeft, RefreshCw, Bell, Settings, Shield } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AddAccountButton } from "@/components/dashboard/AddAccountButton";
 import {
@@ -13,13 +13,12 @@ import {
   TransactionHistory,
   FinancialReportCard,
   TodayReceived,
-  PremiumCTACard,
   AiChatDrawer,
   RealtimeReports,
   AiAssistantCard,
 } from "@/components/dashboard-v2";
-import { supabase } from "@/lib/supabase";
 import { useTitanUserId } from "@/hooks/useTitanUserId";
+import { supabase } from "@/lib/supabase";
 
 interface Report {
   total_balance?: number;
@@ -30,6 +29,17 @@ interface Report {
   cash_flow?: { name: string; income: number; expense: number }[];
   account_count?: number;
   transaction_count_90d?: number;
+  today_received?: number;
+  unpaid_invoices?: number;
+  salary_income?: number;
+  freelance_income?: number;
+  credit_card_expense_90d?: number;
+  checking_expense_90d?: number;
+  balance_change_percent?: number;
+  income_change?: number;
+  income_change_percent?: number;
+  expense_change?: number;
+  expense_change_percent?: number;
 }
 
 function DashboardContent() {
@@ -126,9 +136,18 @@ function DashboardContent() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-        <div className="mb-6 sm:mb-8">
-          <p className="text-sm text-slate-500">Welcome back</p>
-          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Claudius</h1>
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:mb-8">
+          <div>
+            <p className="text-sm text-slate-500">Welcome back</p>
+            <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Claudius</h1>
+          </div>
+          <Link
+            href="/compliance"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+          >
+            <Shield className="size-4" />
+            Compliance Center
+          </Link>
         </div>
 
         <div className="mb-4">
@@ -137,11 +156,18 @@ function DashboardContent() {
 
         <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-12">
           <div className="lg:col-span-5">
-            <BalanceCard balance={totalBalance} changePercent={12} />
+            <BalanceCard balance={totalBalance} changePercent={report?.balance_change_percent ?? 0} loading={reportLoading} />
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:col-span-7">
-            <IncomeCard total={income90d} />
-            <ExpenseCard expense={expense90d} />
+            <IncomeCard
+              total={income90d}
+              change={report?.income_change ?? 0}
+              changePercent={report?.income_change_percent ?? 0}
+              salary={report?.salary_income ?? 0}
+              freelance={report?.freelance_income ?? 0}
+              loading={reportLoading}
+            />
+            <ExpenseCard expense={expense90d} change={report?.expense_change ?? 0} changePercent={report?.expense_change_percent ?? 0} loading={reportLoading} />
           </div>
         </div>
 
@@ -157,12 +183,11 @@ function DashboardContent() {
           </div>
         </div>
 
-        <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <TodayReceived />
+        <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <TodayReceived todayReceived={report?.today_received ?? 0} unpaidInvoices={report?.unpaid_invoices ?? 0} loading={reportLoading} />
           <div className="sm:col-span-1 lg:col-span-2">
             <FinancialReportCard />
           </div>
-          <PremiumCTACard />
         </div>
 
         <AiAssistantCard onOpenChat={() => setChatOpen(true)} />

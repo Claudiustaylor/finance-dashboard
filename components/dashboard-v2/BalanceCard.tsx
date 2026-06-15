@@ -1,27 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Eye,
-  EyeOff,
-  Plus,
-  SendHorizontal,
-  HandCoins,
-} from "lucide-react";
+import { Eye, EyeOff, Plus, SendHorizontal, HandCoins } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 interface BalanceCardProps {
   balance?: number;
   changePercent?: number;
   currency?: string;
+  loading?: boolean;
 }
 
 const MINI_BARS = [18, 28, 14, 36, 22, 40, 26, 44, 34, 52, 30, 48];
@@ -30,6 +18,7 @@ export function BalanceCard({
   balance = 0,
   changePercent = 0,
   currency = "USD",
+  loading = false,
 }: BalanceCardProps) {
   const [hidden, setHidden] = useState(false);
 
@@ -59,54 +48,26 @@ export function BalanceCard({
       </div>
 
       <div className="flex items-start justify-between pr-2">
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-slate-500">My balance</p>
-          <div className="flex items-center gap-2">
-            <Select defaultValue={currency}>
-              <SelectTrigger className="h-6 gap-1 rounded-full border-slate-200 bg-slate-50 px-2 py-0 text-xs font-medium text-slate-700 hover:bg-slate-100 [&_svg]:size-3">
-                <SelectValue placeholder="USD" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="USD">USD</SelectItem>
-                <SelectItem value="EUR">EUR</SelectItem>
-                <SelectItem value="GBP">GBP</SelectItem>
-              </SelectContent>
-            </Select>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-              All time
-            </span>
-          </div>
+        <div>
+          <p className="text-sm font-medium text-slate-500">Total balance</p>
+          {loading ? (
+            <div className="mt-2 h-9 w-40 animate-pulse rounded-lg bg-slate-100" />
+          ) : (
+            <p className="mt-1 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+              {formatted}
+            </p>
+          )}
         </div>
-        <button className="text-slate-400 transition hover:text-slate-600">
-          <span className="sr-only">Menu</span>
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="currentColor"
-          >
-            <circle cx="8" cy="3" r="1.5" />
-            <circle cx="8" cy="8" r="1.5" />
-            <circle cx="8" cy="13" r="1.5" />
-          </svg>
-        </button>
-      </div>
-
-      <div className="mt-5 flex items-center gap-3">
-        <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-          {formatted}
-        </h2>
         <button
           onClick={() => setHidden((v) => !v)}
-          className="rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
-          aria-label={hidden ? "Show balance" : "Hide balance"}
+          className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
         >
           {hidden ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
         </button>
       </div>
 
-      <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-        <span className="rounded-full bg-emerald-500 p-0.5">
+      <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600">
+        <span className="flex size-5 items-center justify-center rounded-full bg-emerald-500 text-white">
           <svg
             className="size-2.5 text-white"
             viewBox="0 0 12 12"
@@ -117,7 +78,8 @@ export function BalanceCard({
             <path d="M6 2v8M2 6l4-4 4 4" />
           </svg>
         </span>
-        +{changePercent}% Balance increase, Good progress.
+        {changePercent >= 0 ? "+" : ""}
+        {changePercent}% Balance increase, Good progress.
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-2 sm:gap-3">

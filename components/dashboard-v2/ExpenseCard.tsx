@@ -1,36 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { ArrowUpRight, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useTitanUserId } from "@/hooks/useTitanUserId";
 
 interface ExpenseCardProps {
   expense?: number;
   change?: number;
+  changePercent?: number;
+  loading?: boolean;
 }
 
-export function ExpenseCard({ expense: expenseProp, change: changeProp }: ExpenseCardProps) {
-  const [expense, setExpense] = useState(0);
-  const [change, setChange] = useState(0);
-  const { userId, loading: userLoading } = useTitanUserId();
-
-  useEffect(() => {
-    if (userLoading) return;
-    fetch("/api/reports/realtime", {
-      headers: userId ? { "x-titan-user-id": userId } : {},
-    })
-      .then((r) => r.json())
-      .then((d) => {
-        setExpense(expenseProp ?? d.expense_90d ?? 0);
-        setChange(changeProp ?? d.expense_change ?? 0);
-      })
-      .catch(() => {
-        setExpense(expenseProp ?? 0);
-        setChange(changeProp ?? 0);
-      });
-  }, [userId, userLoading, expenseProp, changeProp]);
-
+export function ExpenseCard({ expense = 0, change = 0, changePercent = 0, loading = false }: ExpenseCardProps) {
   return (
     <div className="rounded-3xl bg-white p-5 shadow-[0_2px_24px_-6px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04]">
       <div className="mb-3 flex items-center justify-between">
@@ -40,12 +20,21 @@ export function ExpenseCard({ expense: expenseProp, change: changeProp }: Expens
           </div>
           <span className="text-sm font-semibold text-slate-900">Total expense</span>
         </div>
-        <span className="text-xs font-medium text-rose-600">+{change}%</span>
+        {!loading && (
+          <span className={cn("text-xs font-medium", changePercent >= 0 ? "text-rose-600" : "text-emerald-600")}>
+            {changePercent >= 0 ? "+" : ""}
+            {changePercent}%
+          </span>
+        )}
       </div>
-      <p className="text-2xl font-bold text-slate-900">${expense.toLocaleString()}</p>
+      {loading ? (
+        <div className="mt-2 h-8 w-32 animate-pulse rounded-lg bg-slate-100" />
+      ) : (
+        <p className="text-2xl font-bold text-slate-900">${expense.toLocaleString("en-US", { minimumFractionDigits: 2 })}</p>
+      )}
       <div className="mt-4 flex items-center gap-1 text-xs text-slate-500">
         <ArrowUpRight className="size-3.5" />
-        vs last month
+        {change >= 0 ? "+" : ""}${Math.abs(change).toLocaleString("en-US", { minimumFractionDigits: 2 })} vs last month
       </div>
     </div>
   );

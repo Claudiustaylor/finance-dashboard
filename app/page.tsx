@@ -74,6 +74,7 @@ export default function HomePage() {
           <nav className="hidden items-center gap-6 text-sm text-white/60 sm:flex">
             <Link href="#features" className="transition hover:text-white">Features</Link>
             <Link href="/dashboard" className="transition hover:text-white">Dashboard</Link>
+            <Link href="/compliance" className="transition hover:text-white">Compliance</Link>
             <Link href="/receipts" className="transition hover:text-white">Receipts</Link>
           </nav>
           <div className="flex items-center gap-3">
@@ -101,7 +102,7 @@ export default function HomePage() {
             <span className="titan-text-gradient">automatically understood.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-base text-white/60 sm:text-lg">
-            Automated bank feeds, AI categorization, receipt capture with OCR, recurring expense tracking, real-time burn rate and runway, and a conversational AI assistant wired to the same model you already use.
+            Automated bank feeds, AI categorization, receipt capture with OCR, recurring expense tracking, real-time burn rate and runway, and a conversational AI assistant.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
@@ -178,7 +179,7 @@ export default function HomePage() {
                 </div>
                 <h2 className="text-2xl font-bold sm:text-3xl">Ask your books anything.</h2>
                 <p className="mt-2 text-sm text-white/80 sm:text-base">
-                  “What changed in software expenses this quarter?” — Titan AI queries your transactions, GL accounts, recurring rules, and reconciliation status in real time, all powered by your Ollama Pro model.
+                  “What changed in software expenses this quarter?” — Titan AI queries your transactions, GL accounts, recurring rules, and reconciliation status in real time.
                 </p>
               </div>
               <Link
