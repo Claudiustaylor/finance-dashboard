@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { supabaseAdmin } from "@/lib/supabase-admin";
+import { useTitanUserId } from "@/hooks/useTitanUserId";
 import {
   ArrowLeft,
   Building2,
@@ -117,23 +117,28 @@ export default function SettingsAccountsPage() {
   const [toggling, setToggling] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
 
+  const { userId, loading: userLoading } = useTitanUserId();
+
   const load = async () => {
+    if (!userId) return;
     try {
-      const sb = supabaseAdmin();
-      const [{ data: accts }, { data: itms }] = await Promise.all([
-        sb.from("accounts").select("*").eq("is_active", true).order("created_at", { ascending: false }),
-        sb.from("plaid_items").select("*").neq("status", "disconnected").order("created_at", { ascending: false }),
-      ]);
-      setAccounts(accts || []);
-      setItems(itms || []);
+      const res = await fetch("/api/accounts", {
+        headers: { "x-titan-user-id": userId },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setAccounts(data.accounts || []);
+      setItems(data.plaidItems || []);
+    } catch (e) {
+      console.error("Failed to load accounts:", e);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    load();
-  }, []);
+    if (!userLoading) load();
+  }, [userId, userLoading]);
 
   const groups = useMemo(() => {
     const map: Record<string, { item: PlaidItem; accounts: Account[] }> = {};
