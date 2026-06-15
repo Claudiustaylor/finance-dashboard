@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 import {
   ArrowLeft,
   Building2,
@@ -118,7 +119,7 @@ export default function SettingsAccountsPage() {
 
   const load = async () => {
     try {
-      const sb = (await import("@/lib/supabase")).supabase;
+      const sb = supabaseAdmin();
       const [{ data: accts }, { data: itms }] = await Promise.all([
         sb.from("accounts").select("*").order("created_at", { ascending: false }),
         sb.from("plaid_items").select("*").neq("status", "disconnected").order("created_at", { ascending: false }),
