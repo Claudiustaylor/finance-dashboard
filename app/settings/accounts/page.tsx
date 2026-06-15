@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Building2, CreditCard, Wallet, Landmark, Loader2, RefreshCw, Trash2, AlertCircle, Plus } from "lucide-react";
+import { RepairConnectionButton } from "@/components/dashboard/RepairConnectionButton";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -169,16 +170,19 @@ export default function SettingsAccountsPage() {
                       </p>
                     )}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-rose-500 hover:bg-rose-50 hover:text-rose-600"
-                    disabled={disconnecting === item.id}
-                    onClick={() => disconnect(item.id, item.institution_name)}
-                  >
-                    {disconnecting === item.id ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
-                    <span className="ml-2">Disconnect</span>
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <RepairConnectionButton itemId={item.id} userId={uid || undefined} onSuccess={load} />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-rose-500 hover:bg-rose-50 hover:text-rose-600"
+                      disabled={disconnecting === item.id}
+                      onClick={() => disconnect(item.id, item.institution_name)}
+                    >
+                      {disconnecting === item.id ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
+                      <span className="ml-2">Disconnect</span>
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="space-y-2">

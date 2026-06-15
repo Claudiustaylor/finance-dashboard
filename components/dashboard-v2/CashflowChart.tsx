@@ -63,7 +63,7 @@ export function CashflowChart({ data = DEFAULT_DATA }: CashflowChartProps) {
   const [period, setPeriod] = useState<"month" | "year">("month");
 
   return (
-    <div className="rounded-3xl bg-white p-5 shadow-[0_2px_24px_-6px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04]">
+    <div className="rounded-3xl bg-white p-5 shadow-[0_2px_24px_-6px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04] h-full flex flex-col">
       <div className="mb-4 flex items-center justify-between">
         <p className="text-base font-semibold text-slate-900">Cashflow chart</p>
         <div className="flex items-center gap-2">
@@ -89,7 +89,7 @@ export function CashflowChart({ data = DEFAULT_DATA }: CashflowChartProps) {
         </div>
       </div>
 
-      <div className="h-[220px] w-full sm:h-[240px]">
+      <div className="h-[220px] w-full sm:h-[240px] flex-1 min-h-0">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
             <CartesianGrid

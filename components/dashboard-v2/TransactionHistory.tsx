@@ -139,7 +139,7 @@ export function TransactionHistory({ userId }: TransactionHistoryProps) {
   }
 
   return (
-    <div className="rounded-3xl bg-white p-5 shadow-[0_2px_24px_-6px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04] flex flex-col max-h-[420px]">
+    <div className="rounded-3xl bg-white p-5 shadow-[0_2px_24px_-6px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04] flex flex-col h-full min-h-[420px] max-h-[640px]">
       <div className="mb-4 flex items-center justify-between">
         <span className="text-sm font-semibold text-slate-900">Transactions</span>
         <Link
@@ -150,7 +150,7 @@ export function TransactionHistory({ userId }: TransactionHistoryProps) {
         </Link>
       </div>
 
-      <div className="flex-1 overflow-y-auto pr-1 -mr-1">
+      <div className="flex-1 overflow-y-auto pr-1">
         {error ? (
           <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
             <Receipt className="size-8 text-slate-300" />

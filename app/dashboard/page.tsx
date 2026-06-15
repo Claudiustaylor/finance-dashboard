@@ -37,8 +37,6 @@ interface Report {
   transaction_count_90d?: number;
   today_received?: number;
   unpaid_invoices?: number;
-  salary_income?: number;
-  freelance_income?: number;
   credit_card_expense_90d?: number;
   checking_expense_90d?: number;
   balance_change_percent?: number;

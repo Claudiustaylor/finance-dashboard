@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { normalizeUserId } from '@/lib/user-id';
 
 const supabase = createClient(
   "https://uyvkqgmuxerjdqarjgbh.supabase.co",
   process.env.SUPABASE_SERVICE_ROLE_KEY || ""
 );
 
-/* ─── POST /api/compliance/sync ───
-   Upserts entities + filings into Supabase, returns merged server state  */
 export async function POST(req: NextRequest) {
   try {
     const { entities, completions } = await req.json();
@@ -16,7 +13,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "entities required" }, { status: 400 });
     }
 
-    const userId = "titan_default_user"; // Replace with auth.user_id when auth is wired
+    const userId = "titan_default_user";
+    const now = new Date().toISOString();
 
     // Upsert entities
     const dbEntities = entities.map((e: any) => ({
@@ -28,7 +26,7 @@ export async function POST(req: NextRequest) {
       formation_date: e.formationDate,
       ein: e.ein,
       notes: e.notes,
-      updated_at: new Date().toISOString(),
+      updated_at: now,
     }));
 
     const { error: eErr } = await supabase
@@ -36,23 +34,35 @@ export async function POST(req: NextRequest) {
       .upsert(dbEntities, { onConflict: "id" });
     if (eErr) throw eErr;
 
-    // Upsert completions as filings
-    if (completions && Object.keys(completions).length) {
-      const now = new Date().toISOString();
-      const dbFilings = Object.entries(completions as Record<string, boolean>)
-        .filter(([, v]) => v)
-        .map(([filingId]) => ({
+    // Upsert filings with default values and proper entity_id
+    const filingRows = [];
+    for (const e of entities) {
+      // Generate same filings as client to get stable IDs
+      // Suffixes: annual, franchise, agent
+      const suffixes = ["annual", "franchise", "agent"];
+      // Use simple known set. If type/state rules change, this is best effort.
+      // Filing types per suffix:
+      const types = { annual: "Annual Report", franchise: "Franchise Tax", agent: "Registered Agent Verification" };
+      for (const suffix of suffixes) {
+        const filingId = `${e.id}-${suffix}`;
+        const completed = completions?.[filingId] || false;
+        filingRows.push({
           id: filingId,
-          completed: true,
-          completed_at: now,
-          updated_at: now,
-        }));
-      if (dbFilings.length) {
-        const { error: fErr } = await supabase
-          .from("compliance_filings")
-          .upsert(dbFilings, { onConflict: "id" });
-        if (fErr) throw fErr;
+          entity_id: e.id,
+          filing_type: types[suffix as keyof typeof types],
+          completed,
+          completed_at: completed ? now : null,
+          cost: "$0",
+          late_fee: "$0",
+        });
       }
+    }
+
+    if (filingRows.length) {
+      const { error: fErr } = await supabase
+        .from("compliance_filings")
+        .upsert(filingRows, { onConflict: "id" });
+      if (fErr) throw fErr;
     }
 
     // Fetch latest server state
@@ -63,7 +73,7 @@ export async function POST(req: NextRequest) {
 
     const { data: serverFilings } = await supabase
       .from("compliance_filings")
-      .select("id, completed, completed_at")
+      .select("id, completed, completed_at, entity_id")
       .in(
         "entity_id",
         (serverEntities || []).map((e: any) => e.id)

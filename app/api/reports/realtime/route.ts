@@ -56,11 +56,7 @@ export async function GET(req: NextRequest) {
       .filter((t) => Number(t.amount) > 0 && (String(t.accounts?.subtype).toLowerCase().includes("checking") || String(t.accounts?.type).toLowerCase().includes("depository")))
       .reduce((sum, t) => sum + Math.abs(Number(t.amount || 0)), 0);
 
-    // Heuristic income splits
-    const salaryIncome = transactions
-      .filter((t) => Number(t.amount) < 0 && /(payroll|direct deposit|salary|gusto|adp)/i.test(t.name || ""))
-      .reduce((sum, t) => sum + Math.abs(Number(t.amount || 0)), 0);
-    const freelanceIncome = income - salaryIncome;
+    // Income is kept as a single metric; no fabricated salary/freelance split.
 
     // Burn rate = last 30 days net outflow averaged daily, multiplied to monthly
     const last30 = transactions.filter((t) => new Date(t.date) >= new Date(Date.now() - 30 * 86400000));
@@ -133,8 +129,6 @@ export async function GET(req: NextRequest) {
       unpaid_invoices: 0,
       credit_card_expense_90d: Number(creditCardExpense.toFixed(2)),
       checking_expense_90d: Number(checkingExpense.toFixed(2)),
-      salary_income: Number(salaryIncome.toFixed(2)),
-      freelance_income: Number(freelanceIncome.toFixed(2)),
       income_change: Number(incomeChange.toFixed(2)),
       income_change_percent: Number(incomeChangePercent.toFixed(1)),
       expense_change: Number(expenseChange.toFixed(2)),

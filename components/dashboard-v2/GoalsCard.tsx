@@ -97,7 +97,7 @@ export function GoalsCard({
 
   return (
     <>
-      <div className="rounded-3xl bg-white p-5 shadow-[0_2px_24px_-6px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04]">
+      <div className="rounded-3xl bg-white p-5 shadow-[0_2px_24px_-6px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04] h-full flex flex-col">
         <div className="mb-4 flex items-center justify-between">
           <p className="text-base font-semibold text-slate-900">My goals</p>
           <div className="relative">
