@@ -1,6 +1,7 @@
 'use client';
 
 import { PlaidLinkButton } from '@/components/plaid/PlaidLinkButton';
+import Link from 'next/link';
 import { useEffect } from 'react';
 
 export function Header() {
@@ -38,13 +39,12 @@ export function Header() {
           </div>
 
           <nav className="hidden md:flex items-center gap-8">
-            <a href="/" className="text-sm font-medium text-white flex items-center gap-1.5">
+            <Link href="/" className="text-sm font-medium text-white flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#0071c5]"></span>
               Home
-            </a>
-            <a href="#accounts" className="text-sm text-[#888888] hover:text-white transition-colors">Accounts</a>
-            <a href="#transactions" className="text-sm text-[#888888] hover:text-white transition-colors">Transactions</a>
-            <a href="#budget" className="text-sm text-[#888888] hover:text-white transition-colors">Budget</a>
+            </Link>
+            <Link href="/dashboard" className="text-sm text-[#888888] hover:text-white transition-colors">Dashboard</Link>
+            <Link href="/settings/accounts" className="text-sm text-[#888888] hover:text-white transition-colors">Settings</Link>
           </nav>
 
           <PlaidLinkButton />

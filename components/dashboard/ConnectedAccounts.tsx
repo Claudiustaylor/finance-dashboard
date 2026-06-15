@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { CreditCard, Landmark, Wallet, Building2, ChevronDown, ChevronUp, RefreshCw, Circle } from "lucide-react";
+import Link from "next/link";
+import { CreditCard, Landmark, Wallet, Building2, ChevronDown, ChevronUp, RefreshCw, Settings2 } from "lucide-react";
 
 interface PlaidItem {
   id: string;
@@ -148,6 +149,13 @@ export function ConnectedAccounts({ accounts, plaidItems }: Props) {
                 <p className="text-lg font-bold text-white tabular-nums">
                   ${total.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                 </p>
+                <Link
+                  href="/settings/accounts"
+                  className="inline-flex items-center gap-1 text-xs text-white/50 transition hover:text-white"
+                >
+                  <Settings2 className="w-3 h-3" />
+                  Manage
+                </Link>
                 {Object.keys(groups).length > 1 && (
                   isExpanded ? <ChevronUp className="w-4 h-4 text-white/40" /> : <ChevronDown className="w-4 h-4 text-white/40" />
                 )}

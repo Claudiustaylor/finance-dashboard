@@ -1,12 +1,30 @@
+"use client";
+
 import Link from "next/link";
-import { ArrowRight, CreditCard, Globe, TrendingUp, RefreshCw, Shield, ChevronRight, Sparkles, Receipt, Bot } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, CreditCard, Globe, TrendingUp, RefreshCw, Shield, ChevronRight, Sparkles, Receipt, Bot, Menu, X } from "lucide-react";
+
+const navLinks = [
+  { label: "Dashboard", href: "/dashboard" },
+  { label: "Compliance", href: "/compliance" },
+  { label: "Receipts", href: "/receipts" },
+  { label: "Features", href: "#features" },
+  { label: "Security", href: "#security" },
+];
+
+const footerLinks = [
+  { label: "Dashboard", href: "/dashboard" },
+  { label: "Compliance", href: "/compliance" },
+  { label: "Receipts", href: "/receipts" },
+  { label: "Settings", href: "/settings/accounts" },
+];
 
 const features = [
   {
     icon: CreditCard,
     title: "Connect any bank.",
     subtitle: "Capital One, Chase, Wells Fargo — 12,000+ institutions.",
-    highlight: "Live sync",
+    highlight: "Connected",
     cta: "Link your first account",
     href: "/dashboard",
     color: "#0071c5",
@@ -15,7 +33,7 @@ const features = [
     icon: Globe,
     title: "Unified dashboard.",
     subtitle: "See every account, every transaction, every dollar in one place.",
-    highlight: "Real-time",
+    highlight: "Unified",
     cta: "View dashboard",
     href: "/dashboard",
     color: "#00aeef",
@@ -24,7 +42,7 @@ const features = [
     icon: TrendingUp,
     title: "Track net worth.",
     subtitle: "Assets minus liabilities. Updated every time you open the app.",
-    highlight: "$97.21",
+    highlight: "Live",
     cta: "See your net worth",
     href: "/dashboard",
     color: "#0071c5",
@@ -42,7 +60,7 @@ const features = [
     icon: Shield,
     title: "Bank-grade security.",
     subtitle: "256-bit encryption. Plaid-powered. Your credentials never touch our servers.",
-    highlight: "SOC 2",
+    highlight: "Secure",
     cta: "Learn more",
     href: "#security",
     color: "#0071c5",
@@ -58,7 +76,19 @@ const features = [
   },
 ];
 
+function scrollToAnchor(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
+  if (href.startsWith("#")) {
+    e.preventDefault();
+    const target = document.querySelector(href);
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+}
+
 export default function HomePage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
@@ -72,7 +102,7 @@ export default function HomePage() {
             <span className="text-sm font-semibold tracking-tight">Titan Finance</span>
           </div>
           <nav className="hidden items-center gap-6 text-sm text-white/60 sm:flex">
-            <Link href="#features" className="transition hover:text-white">Features</Link>
+            <Link href="#features" onClick={(e) => scrollToAnchor(e, "#features")} className="transition hover:text-white">Features</Link>
             <Link href="/dashboard" className="transition hover:text-white">Dashboard</Link>
             <Link href="/compliance" className="transition hover:text-white">Compliance</Link>
             <Link href="/receipts" className="transition hover:text-white">Receipts</Link>
@@ -80,13 +110,50 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
             >
               Launch app
               <ArrowRight className="size-4" />
             </Link>
+            <button
+              onClick={() => setMobileMenuOpen((v) => !v)}
+              className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 p-2 text-white/80 transition hover:bg-white/10 sm:hidden"
+              aria-label="Toggle menu"
+              aria-expanded={mobileMenuOpen}
+            >
+              {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile nav */}
+        {mobileMenuOpen && (
+          <nav className="border-t border-white/[0.06] bg-black/95 px-4 py-3 sm:hidden">
+            <div className="flex flex-col gap-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  onClick={(e) => {
+                    scrollToAnchor(e, link.href);
+                    setMobileMenuOpen(false);
+                  }}
+                  className="rounded-lg px-3 py-2.5 text-sm text-white/70 transition hover:bg-white/5 hover:text-white"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-full bg-[#0071c5] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#005fa6]"
+              >
+                Launch app
+                <ArrowRight className="size-4" />
+              </Link>
+            </div>
+          </nav>
+        )}
       </header>
 
       {/* Hero */}
@@ -156,11 +223,43 @@ export default function HomePage() {
                 <p className="mt-1 text-sm text-white/50">{f.subtitle}</p>
                 <Link
                   href={f.href}
+                  onClick={(e) => scrollToAnchor(e, f.href)}
                   className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-[#00aeef] transition hover:gap-2"
                 >
                   {f.cta}
                   <ChevronRight className="size-4" />
                 </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Security / Trust */}
+      <section id="security" className="border-t border-white/[0.06] px-4 py-16 sm:px-6">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-8 text-center">
+            <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-medium text-white/80">
+              <Shield className="size-3.5 text-[#00aeef]" />
+              Trust &amp; security
+            </div>
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Built to keep your money private.</h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm text-white/60">
+              We do not store bank credentials. Data is encrypted in transit and at rest. Authentication runs through Plaid. SOC 2 readiness is on our roadmap.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[
+              { title: "Bank-level encryption", body: "TLS 1.3 in transit and AES-256 at rest." },
+              { title: "Plaid connection", body: "Credentials are handled by Plaid. We only read transaction data." },
+              { title: "SOC 2 intent", body: "Controls and audit logging are being built toward SOC 2 readiness." },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5 backdrop-blur-sm"
+              >
+                <h3 className="text-sm font-semibold text-white">{item.title}</h3>
+                <p className="mt-1 text-sm text-white/50">{item.body}</p>
               </div>
             ))}
           </div>
@@ -197,8 +296,22 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/[0.06] px-4 py-8 text-center text-xs text-white/40 sm:px-6">
-        <p>© {new Date().getFullYear()} Titan Finance. Built for Claudius Taylor.</p>
+      <footer className="border-t border-white/[0.06] px-4 py-8 sm:px-6">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
+          <p className="text-xs text-white/40">&copy; {new Date().getFullYear()} Titan Finance. Built for Claudius Taylor.</p>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            {footerLinks.map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                onClick={(e) => scrollToAnchor(e, link.href)}
+                className="text-xs text-white/50 transition hover:text-white"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </div>
       </footer>
     </div>
   );

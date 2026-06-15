@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, RefreshCw, Bell, Settings, Shield } from "lucide-react";
+import { ArrowLeft, RefreshCw, Bell, Settings, Shield, BellRing, CreditCard, FileCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AddAccountButton } from "@/components/dashboard/AddAccountButton";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import {
   BalanceCard,
   IncomeCard,
@@ -43,10 +46,133 @@ interface Report {
   expense_change_percent?: number;
 }
 
+interface Account {
+  id: string;
+  type: string;
+  subtype?: string;
+  current_balance?: number;
+}
+
+interface PlaidItem {
+  id: string;
+  institution_name: string;
+  status: string;
+  last_synced_at?: string;
+}
+
+interface Notification {
+  id: string;
+  icon: React.ReactNode;
+  title: string;
+  body: string;
+  time: string;
+  unread: boolean;
+}
+
+function NotificationsBell() {
+  const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([
+    {
+      id: "1",
+      icon: <BellRing className="size-4 text-[#0071c5]" />,
+      title: "Sync completed",
+      body: "Your Chase account finished syncing 42 transactions.",
+      time: "2 min ago",
+      unread: true,
+    },
+    {
+      id: "2",
+      icon: <CreditCard className="size-4 text-rose-500" />,
+      title: "Large expense detected",
+      body: "A $340 charge was categorized under Travel.",
+      time: "1 hour ago",
+      unread: true,
+    },
+    {
+      id: "3",
+      icon: <FileCheck className="size-4 text-emerald-500" />,
+      title: "Report ready",
+      body: "Your monthly financial report is ready to print.",
+      time: "Yesterday",
+      unread: false,
+    },
+  ]);
+
+  const unreadCount = notifications.filter((n) => n.unread).length;
+
+  function markAllRead() {
+    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="relative rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+        aria-label="Open notifications"
+      >
+        <Bell className="size-5" />
+        {unreadCount > 0 && (
+          <span className="absolute right-1 top-1 flex size-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white">
+            {unreadCount}
+          </span>
+        )}
+      </button>
+
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="right">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <BellRing className="size-4 text-[#0071c5]" />
+              Notifications
+            </SheetTitle>
+            <SheetDescription>
+              {unreadCount > 0 ? `${unreadCount} unread` : "You're all caught up"}
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="flex-1 space-y-2 px-4 py-2">
+            {notifications.map((n) => (
+              <div
+                key={n.id}
+                className={cn(
+                  "flex gap-3 rounded-xl border p-3 transition",
+                  n.unread ? "border-slate-100 bg-slate-50" : "border-transparent bg-white"
+                )}
+              >
+                <div className="mt-0.5 shrink-0">{n.icon}</div>
+                <div className="min-w-0 flex-1">
+                  <p className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                    {n.title}
+                    {n.unread && <span className="size-2 rounded-full bg-[#0071c5]" />}
+                  </p>
+                  <p className="text-xs text-slate-600">{n.body}</p>
+                  <p className="mt-1 text-[10px] text-slate-400">{n.time}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <SheetFooter>
+            <Button
+              variant="outline"
+              onClick={markAllRead}
+              className="w-full"
+            >
+              Mark all as read
+            </Button>
+            <Button variant="ghost" className="w-full" onClick={() => setOpen(false)}>Close</Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+    </>
+  );
+}
+
 function DashboardContent() {
   const [chatOpen, setChatOpen] = useState(false);
-  const [accounts, setAccounts] = useState<any[]>([]);
-  const [plaidItems, setPlaidItems] = useState<any[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [plaidItems, setPlaidItems] = useState<PlaidItem[]>([]);
   const [report, setReport] = useState<Report | null>(null);
   const [reportLoading, setReportLoading] = useState(true);
   const { userId, loading: userLoading } = useTitanUserId();
@@ -126,12 +252,13 @@ function DashboardContent() {
                 <span className="hidden sm:inline">Sync</span>
               </button>
             </form>
-            <button className="hidden rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 sm:inline-flex">
-              <Bell className="size-5" />
-            </button>
-            <button className="hidden rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 sm:inline-flex">
+            <NotificationsBell />
+            <Link
+              href="/settings/accounts"
+              className="hidden rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 sm:inline-flex"
+            >
               <Settings className="size-5" />
-            </button>
+            </Link>
           </div>
         </div>
       </header>
@@ -196,7 +323,7 @@ function DashboardContent() {
             }}
           />
           <div className="sm:col-span-1 lg:col-span-2">
-            <FinancialReportCard />
+            <FinancialReportCard report={report} />
           </div>
         </div>
 
@@ -216,6 +343,12 @@ function DashboardContent() {
               </span>
             </div>
             <div className="flex items-center gap-4">
+              <Link
+                href="/settings/accounts"
+                className="text-xs text-slate-500 transition hover:text-slate-900"
+              >
+                Settings
+              </Link>
               <Link
                 href="/compliance"
                 className="text-xs text-[#0071c5] transition hover:text-[#00aeef]"

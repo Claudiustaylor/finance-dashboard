@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const limit = Math.min(Number(searchParams.get("limit") || "20"), 100);
+    const offset = Math.max(Number(searchParams.get("offset") || "0"), 0);
     const startDate = searchParams.get("start_date");
     const endDate = searchParams.get("end_date");
 
@@ -25,6 +26,7 @@ export async function GET(req: NextRequest) {
       .select("id, name, merchant_name, amount, date, category_id, plaid_category, ai_category, is_recurring, pending, account_id, accounts:account_id(name, type, subtype)")
       .eq("user_id", userId)
       .order("date", { ascending: false })
+      .range(offset, offset + limit - 1)
       .limit(limit);
 
     if (startDate) q = q.gte("date", startDate);
