@@ -3,6 +3,7 @@
 import { useCallback, useState, useEffect } from "react";
 import { usePlaidLink } from "react-plaid-link";
 import { Plus, Loader2, CheckCircle } from "lucide-react";
+import { toast } from "sonner";
 
 interface Props {
   userId?: string;
@@ -14,11 +15,9 @@ interface Props {
 
 export function AddAccountButton({ userId, onSuccess, label = "Connect Another Bank", className = "", "data-connect-bank": dataConnectBank }: Props) {
   const [linkToken, setLinkToken] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
 
   const getToken = async () => {
-    setError(null);
     try {
       const uid = userId || localStorage.getItem("titan_user_id") || crypto.randomUUID();
       const res = await fetch("/api/plaid/link-token", {
@@ -31,10 +30,10 @@ export function AddAccountButton({ userId, onSuccess, label = "Connect Another B
         setLinkToken(data.link_token);
         if (!userId) localStorage.setItem("titan_user_id", uid);
       } else {
-        setError(data.error || "Failed to initialize");
+        toast.error(data.error || "Failed to initialize Plaid.");
       }
     } catch (err: any) {
-      setError(err.message);
+      toast.error(err.message || "Failed to start bank connection.");
     }
   };
 
@@ -51,18 +50,19 @@ export function AddAccountButton({ userId, onSuccess, label = "Connect Another B
         if (data.success || data.ok) {
           setConnected(true);
           setLinkToken(null);
+          toast.success(data.message || "Bank connected successfully.");
           setTimeout(() => {
             setConnected(false);
             onSuccess?.();
-          }, 2000);
+          }, 1500);
         } else if (data.already_connected) {
-          setError(data.message || "This bank is already connected.");
           setLinkToken(null);
+          toast.info(data.message || "This bank is already connected.");
         } else {
-          setError(data.error || "Exchange failed");
+          toast.error(data.error || "Failed to connect bank.");
         }
       } catch (err: any) {
-        setError(err.message);
+        toast.error(err.message || "Connection failed.");
       }
     },
     [userId, onSuccess]
@@ -82,7 +82,7 @@ export function AddAccountButton({ userId, onSuccess, label = "Connect Another B
 
   if (connected) {
     return (
-      <button className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium rounded-lg">
+      <button className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-sm font-medium rounded-lg">
         <CheckCircle className="w-4 h-4" />
         Connected!
       </button>
@@ -109,7 +109,6 @@ export function AddAccountButton({ userId, onSuccess, label = "Connect Another B
           </>
         )}
       </button>
-      {error && <span className="text-xs text-red-400">{error}</span>}
     </div>
   );
 }

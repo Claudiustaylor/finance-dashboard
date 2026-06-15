@@ -132,7 +132,7 @@ export function TransactionHistory({ userId }: TransactionHistoryProps) {
   }
 
   return (
-    <div className="rounded-3xl bg-white p-5 shadow-[0_2px_24px_-6px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04]">
+    <div className="rounded-3xl bg-white p-5 shadow-[0_2px_24px_-6px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04] flex flex-col max-h-[420px]">
       <div className="mb-4 flex items-center justify-between">
         <span className="text-sm font-semibold text-slate-900">Transactions</span>
         <Link
@@ -143,59 +143,61 @@ export function TransactionHistory({ userId }: TransactionHistoryProps) {
         </Link>
       </div>
 
-      {error ? (
-        <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
-          <Receipt className="size-8 text-slate-300" />
-          <p className="text-sm text-slate-500">{error}</p>
-        </div>
-      ) : txns.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
-          <Receipt className="size-8 text-slate-300" />
-          <p className="text-sm text-slate-500">No recent transactions found.</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {txns.map((t) => {
-            const positive = t.amount < 0;
-            const Icon = ICONS[t.category] || ICONS.default;
-            const accountLabel = [t.accountName, t.accountSubtype, t.accountType].filter(Boolean).join(" · ");
-            return (
-              <div key={t.id} className="flex items-center justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-3">
-                  <div
+      <div className="flex-1 overflow-y-auto pr-1 -mr-1">
+        {error ? (
+          <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
+            <Receipt className="size-8 text-slate-300" />
+            <p className="text-sm text-slate-500">{error}</p>
+          </div>
+        ) : txns.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
+            <Receipt className="size-8 text-slate-300" />
+            <p className="text-sm text-slate-500">No recent transactions found.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {txns.map((t) => {
+              const positive = t.amount < 0;
+              const Icon = ICONS[t.category] || ICONS.default;
+              const accountLabel = [t.accountName, t.accountSubtype, t.accountType].filter(Boolean).join(" · ");
+              return (
+                <div key={t.id} className="flex items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div
+                      className={cn(
+                        "flex size-9 shrink-0 items-center justify-center rounded-full",
+                        positive ? "bg-emerald-100 text-emerald-600" : "bg-slate-100 text-slate-600"
+                      )}
+                    >
+                      <Icon className="size-4" />
+                    </div>
+                    <div className="min-w-0 overflow-hidden">
+                      <TransactionName name={t.name} />
+                      <p className="truncate text-xs text-slate-500">
+                        {t.category}
+                        {t.date ? ` · ${t.date}` : ""}
+                        {accountLabel ? ` · ${accountLabel}` : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <span
                     className={cn(
-                      "flex size-9 shrink-0 items-center justify-center rounded-full",
-                      positive ? "bg-emerald-100 text-emerald-600" : "bg-slate-100 text-slate-600"
+                      "shrink-0 text-right text-sm font-semibold tabular-nums",
+                      positive ? "text-emerald-600" : "text-slate-900"
                     )}
+                    title={formatCurrency(positive ? -t.amount : t.amount)}
                   >
-                    <Icon className="size-4" />
-                  </div>
-                  <div className="min-w-0 overflow-hidden">
-                    <TransactionName name={t.name} />
-                    <p className="truncate text-xs text-slate-500">
-                      {t.category}
-                      {t.date ? ` · ${t.date}` : ""}
-                      {accountLabel ? ` · ${accountLabel}` : ""}
-                    </p>
-                  </div>
+                    {positive ? "+" : ""}${Math.abs(t.amount).toFixed(2)}
+                  </span>
                 </div>
-                <span
-                  className={cn(
-                    "shrink-0 text-right text-sm font-semibold tabular-nums",
-                    positive ? "text-emerald-600" : "text-slate-900"
-                  )}
-                  title={formatCurrency(positive ? -t.amount : t.amount)}
-                >
-                  {positive ? "+" : ""}${Math.abs(t.amount).toFixed(2)}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {txns.length > 0 && (
-        <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+        <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 shrink-0">
           <button
             onClick={handleShowMore}
             disabled={loadingMore || !hasMore}

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowLeft, RefreshCw, Bell, Settings, Shield, BellRing, CreditCard, FileCheck } from "lucide-react";
+import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { AddAccountButton } from "@/components/dashboard/AddAccountButton";
 import { Button } from "@/components/ui/button";
@@ -169,6 +170,42 @@ function NotificationsBell() {
   );
 }
 
+
+function SyncButton({ userId }: { userId?: string | null }) {
+  const [syncing, setSyncing] = useState(false);
+  async function sync() {
+    if (!userId || syncing) return;
+    setSyncing(true);
+    try {
+      const res = await fetch("/api/plaid/sync", {
+        method: "POST",
+        headers: { "x-titan-user-id": userId },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(`Synced ${data.accounts || 0} accounts · ${data.transactions || 0} transactions`);
+        window.location.reload();
+      } else {
+        toast.error(data.error || "Sync failed.");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Sync failed.");
+    } finally {
+      setSyncing(false);
+    }
+  }
+  return (
+    <button
+      onClick={sync}
+      disabled={syncing}
+      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50"
+    >
+      <RefreshCw className={cn("size-3.5", syncing && "animate-spin")} />
+      <span className="hidden sm:inline">{syncing ? "Syncing..." : "Sync"}</span>
+    </button>
+  );
+}
+
 function DashboardContent() {
   const [chatOpen, setChatOpen] = useState(false);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -243,15 +280,7 @@ function DashboardContent() {
 
           <div className="flex items-center gap-2 sm:gap-3">
             <AddAccountButton data-connect-bank="true" />
-            <form action="/api/plaid/sync" method="POST">
-              <button
-                type="submit"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
-              >
-                <RefreshCw className="size-3.5" />
-                <span className="hidden sm:inline">Sync</span>
-              </button>
-            </form>
+            <SyncButton userId={userId} />
             <NotificationsBell />
             <Link
               href="/settings/accounts"
